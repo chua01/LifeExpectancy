@@ -1,8 +1,6 @@
 import streamlit as st
 import pandas as pd
-import numpy as np
 import joblib
-from sklearn.metrics import r2_score
 
 # Load the models and encoder
 lr_model = joblib.load('linear_regression_model.pkl')
@@ -13,7 +11,7 @@ encoder = joblib.load('target_encoder.pkl')
 important_rf_features = ['AdultMortality', 'BMI', 'under-fivedeaths', 'Polio', 'Totalexpenditure',
                          'Diphtheria', 'HIV/AIDS', 'GDP', 'thinness1-19years', 'Incomecompositionofresources']
 
-# Define the function to predict life expectancy
+# Function to predict life expectancy based on input data
 def predict_life_expectancy(model, input_data, important_features=None):
     if important_features:
         input_data = input_data[important_features]
@@ -47,7 +45,8 @@ example_data = {
 }
 
 # Fill in missing columns with default values
-for col in important_rf_features:
+all_features = important_rf_features + ['Year', 'Country', 'Status']
+for col in all_features:
     if col not in example_data:
         example_data[col] = [0]  # Default value, replace with mean or mode as appropriate
 
@@ -56,13 +55,10 @@ input_data = pd.DataFrame(example_data)
 # Encode categorical features
 input_data[['Country', 'Status']] = encoder.transform(input_data[['Country', 'Status']])
 
-# Make prediction using the chosen model
-if r2_score(y_test, y_pred_rf) > r2_score(y_important_test, y_pred_lr):
-    prediction = predict_life_expectancy(rf_model_important, input_data, important_rf_features)
-    chosen_model = "Random Forest (Important Features)"
-else:
-    prediction = predict_life_expectancy(lr_model, input_data, important_features)
-    chosen_model = "Linear Regression"
+# Predict using the chosen model
+# Assuming RandomForest is chosen based on previous evaluation
+prediction = predict_life_expectancy(rf_model_important, input_data, important_rf_features)
+chosen_model = "Random Forest (Important Features)"
 
 st.write(f"The chosen model for deployment is: {chosen_model}")
 st.write(f"Predicted Life Expectancy: {prediction[0]:.2f}")
